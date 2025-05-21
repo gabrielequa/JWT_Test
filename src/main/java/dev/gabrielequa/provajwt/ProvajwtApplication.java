@@ -33,10 +33,10 @@ public class ProvajwtApplication {
 			userService.saveRole(new Role(null, "ROLE_ADMIN"));
 			userService.saveRole(new Role(null, "ROLE_SUPER_ADMIN"));
 
-			userService.saveUser(new User(null, "Mario Rossi", "mario", "1234", new ArrayList<>()));
-			userService.saveUser(new User(null, "Luigi Bianchi", "luigi", "1234", new ArrayList<>()));
-			userService.saveUser(new User(null, "Laura Gialli", "laura", "1234", new ArrayList<>()));
-			userService.saveUser(new User(null, "Antonio Blu", "antonio", "1234", new ArrayList<>()));
+			userService.saveUser(new User(null, "Mario Rossi", "mario", "1234", null, new ArrayList<>()));
+			userService.saveUser(new User(null, "Luigi Bianchi", "luigi", "1234", null, new ArrayList<>()));
+			userService.saveUser(new User(null, "Laura Gialli", "laura", "1234", null, new ArrayList<>()));
+			userService.saveUser(new User(null, "Antonio Blu", "antonio", "1234", null, new ArrayList<>()));
 
 			userService.addRoleToUser("mario", "ROLE_USER");
 			userService.addRoleToUser("luigi", "ROLE_MANAGER");

@@ -87,6 +87,17 @@ public class UserController {
                 String username = decodedJWT.getSubject();
 
                 User user = userService.getUser(username);
+                
+                // Crea un nuovo refresh token
+                String newRefreshToken = JWT.create()
+                        .withSubject(user.getUsername())
+                        .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 60 * 1000))
+                        .withIssuer(request.getRequestURL().toString())
+                        .sign(algorithm);
+                
+                // Aggiorna il refresh token nel database
+                user.setRefreshToken(newRefreshToken);
+                userService.saveUser(user);
 
                 String accessToken = JWT.create()
                         .withSubject(user.getUsername())
@@ -97,7 +108,7 @@ public class UserController {
 
                 Map<String, String> tokens = new HashMap<>();
                 tokens.put("accessToken", accessToken);
-                tokens.put("refreshToken", refreshToken);
+                tokens.put("refreshToken", newRefreshToken);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 new ObjectMapper().writeValue(response.getOutputStream(), tokens);
 

@@ -16,34 +16,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import dev.gabrielequa.provajwt.filter.CustomAuthenticationFilter;
 import dev.gabrielequa.provajwt.filter.CustomAuthorizationFilter;
+import dev.gabrielequa.provajwt.service.UserService;
 
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // opzionale se usi @PreAuthorize ecc.
-public class SecurityConfig {
-
+@EnableMethodSecurity
+public class SecurityConfig {    
+    
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final UserService userService;
 
-    public SecurityConfig(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, AuthenticationConfiguration authenticationConfiguration) {
+    public SecurityConfig(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, 
+                        AuthenticationConfiguration authenticationConfiguration, UserService userService) {
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.authenticationConfiguration = authenticationConfiguration;
+        this.userService = userService;
     }
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
+    }    
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager(), userService);
         customAuthenticationFilter.setFilterProcessesUrl("/api/login");
 
         http.csrf(csrf -> csrf.disable());

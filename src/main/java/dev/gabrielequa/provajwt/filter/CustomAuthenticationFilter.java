@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dev.gabrielequa.provajwt.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,9 +30,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, UserService userService) {
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
     }
 
     @Override
@@ -49,28 +52,33 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             );
 
         return authenticationManager.authenticate(authenticationToken);
-    }
-
-    @Override
+    }    @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, 
         FilterChain chain, Authentication authentication) throws IOException, ServletException {
 
-        User user = (User)authentication.getPrincipal();
+        User springUser = (User)authentication.getPrincipal();
 
         Algorithm algorithm = Algorithm.HMAC256("secret".getBytes());
 
         String access_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .withSubject(springUser.getUsername())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000)) // 10 minuti
                 .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
+                .withClaim("roles", springUser.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .sign(algorithm);
 
         String refresh_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 60 * 1000))
+                .withSubject(springUser.getUsername())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 60 * 1000)) // 30 minuti
                 .withIssuer(request.getRequestURL().toString())
                 .sign(algorithm);
+
+        // Prende l'utente model dal database
+        dev.gabrielequa.provajwt.model.User appUser = userService.getUser(springUser.getUsername());
+        
+        // Salva il refresh token nel database dell'utente
+        appUser.setRefreshToken(refresh_token);
+        userService.saveUser(appUser);
 
         /*response.setHeader("access_token", access_token);
         response.setHeader("refresh_token", refresh_token);*/

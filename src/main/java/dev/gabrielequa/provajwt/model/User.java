@@ -17,6 +17,8 @@ public class User {
     
     private String password;
 
+    private String refreshToken;
+
     @ManyToMany(fetch = FetchType.EAGER)
     private Collection<Role> roles = new ArrayList<>();
 
@@ -25,14 +27,14 @@ public class User {
     }
 
 
-    public User(Long id, String name, String username, String password, Collection<Role> roles) {
+    public User(Long id, String name, String username, String password, String refreshToken, Collection<Role> roles) {
         this.id = id;
         this.name = name;
         this.username = username;
         this.password = password;
+        this.refreshToken = refreshToken;
         this.roles = roles;
     }
-    
 
     public Long getId() {
         return this.id;
@@ -64,6 +66,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRefreshToken() {
+        return this.refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public Collection<Role> getRoles() {
